@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 def _hash_id(prefix, *parts):
     raw = "|".join(str(p) for p in parts)
-    return prefix + hashlib.md5(raw.encode()).hexdigest()[:12].upper()
+    return prefix + hashlib.md5(raw.encode(), usedforsecurity=False).hexdigest()[:12].upper()
 
 STORE_LOCATIONS = [
     ("Thredbo", "NSW", "AUS", "ALPINE"),
