@@ -88,6 +88,30 @@ frostbyte/
 - Use `ref()` for model-to-model references, `source()` for raw table references.
 - Column names inside SQL should be uppercase to match Snowflake defaults.
 
+### dbt Schema Routing (generate_schema_name macro)
+
+By default dbt concatenates `profiles.yml` schema + model `+schema` config (e.g. `STAGING_MARTS`). The Frostbyte project overrides this with a custom macro so that models land in the **exact schema** specified in `dbt_project.yml`:
+
+```sql
+-- macros/generate_schema_name.sql
+{% macro generate_schema_name(custom_schema_name, node) -%}
+    {%- if custom_schema_name is none -%}
+        {{ default_schema }}
+    {%- else -%}
+        {{ custom_schema_name | trim }}
+    {%- endif -%}
+{%- endmacro %}
+```
+
+**Result:**
+| Model config `+schema` | Deployed to |
+|---|---|
+| `STAGING` | `FROSTBYTE_DB.STAGING` |
+| `MARTS` | `FROSTBYTE_DB.MARTS` |
+| *(none)* | `FROSTBYTE_DB.STAGING` (profile default) |
+
+This macro is **required** in every Frostbyte dbt project. Without it, schema names will be prefixed with the profile schema (e.g. `STAGING_MARTS`).
+
 ---
 
 ## Part 3: Standard Data Values & Abbreviations
