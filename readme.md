@@ -53,7 +53,7 @@ Skills are markdown files (and optional scripts) that live in `.snowflake/cortex
 
 > **Note:** In Cortex Code CLI and Desktop, skills are triggered automatically. In Snowsight, that capability is limited today. It is best to invoke a skill manually using `/skill-name` in the console.
 
-Call the skill by using `/naming-convention` then use the following prompt:
+Call the **Naming Convention** skill by using `/naming-convention` then use the following prompt:
 
 ```
 Create the Snowflake infrastructure for the Frostbyte ski supply inventory project — database, schemas, warehouse, and roles. Follow the naming convention skill.
@@ -91,7 +91,7 @@ Call the skill first: `/generate-synthetic-data`, then add:
 Generate synthetic data for the Frostbyte ski supply inventory project using the generate-synthetic-data skill. Do not load the data yet.
 ```
 
-CoCo will ask you how many records to generate. Small (5 stores, 50 products, 10 suppliers, 1000 stock records, 200 purchase orders) works well.
+CoCo will ask you how many records to generate. The Small (5 stores, 50 products, 10 suppliers, 1000 stock records, 200 purchase orders) works well.
 
 #### 2.2 — Load into Snowflake
 
@@ -101,7 +101,7 @@ Call the naming convention skill again (`/naming-convention`), then:
 Load all the generated CSV files into Snowflake tables in the FROSTBYTE_DB.RAW schema. Create the tables, stage, and file format as needed following the naming convention.
 ```
 
-You will see it fails with sandbox errors, but CoCo recovers and uses INSERT statements to create the data. This is a current limitation of the internal sandbox for the CoCo Snowsight option.
+You may see it fails with sandbox connectivity errors, but CoCo recovers and uses INSERT statements to create the data. This is a current limitation of the internal sandbox for the CoCo Snowsight option.
 
 Ask CoCo to validate the data import by comparing the tables to the CSV files. This will validate counts and basic data entry.
 
@@ -109,7 +109,7 @@ Ask CoCo to validate the data import by comparing the tables to the CSV files. T
 
 ---
 
-### 3. Build dbt Models (20 min)
+### 3. Build DBT Models (20 min)
 
 #### Key Concept — Bundled Skills + Skill Composition
 
@@ -121,23 +121,27 @@ CoCo has bundled skills for common frameworks like dbt — it already knows how 
 
 #### 3.1 — Build Staging Models
 
-Remember: in Snowsight, we want to specify the skills we will use first. Call `/generate-synthetic-data` and `/naming-convention`. We can also use `@` to give context to the prompt — use `@data_contract.json` to add this to the prompt. Then use the following text:
+Remember: in Snowsight, we want to specify the skills we will use first. Call `/generate-synthetic-data` and `/naming-convention`. In addition we will call the `/dbt-projects-on-snowflake` skill. We can also use `@` to give context to the prompt — use `@data_contract.json` to add this to the prompt. Then use the following text:
 
 ```
 Create a new dbt project for the Frostbyte inventory analytics platform. Using the data contract in data_contract.json, build the staging models. Follow the naming convention skill for all Snowflake object references. Do not use any external dependencies.
 ```
 
-If this step seems to be taking a while, check it's not waiting for any confirmation and expand out the command using the dropdown arrow.
+> **Hint:** If this step seems to be taking a while, check it's not waiting for any confirmation and expand out the command using the dropdown arrow.
 
 #### 3.2 — Create a Data-Modelling Skill
+
+Once something has been done the way you want it, you can take that information and build this into a reusable skill. This simplifies repeating tasks for yourself and for other users. You can generate these using CoCo and keep them updated as well in the same manner. We'll create one now using the below prompt:  
 
 ```
 Create a new CoCo skill called "data-modelling" that captures the dbt patterns, conventions, and decisions we've used so far in this session — project structure, model naming, materialisation choices, and the Frostbyte naming convention.
 ```
 
-Browse the skill folder and you can see what has been created.
+Browse the skill folder and you can see what has been created. Have a look at some of the layouts and choices it has put in there.  
 
 #### 3.3 — Build Marts & Deploy
+
+We will now use the skill we just created to repeat the process, along with going ahead and deploying the project. 
 
 ```
 Using the data contract in data_contract.json and the data-modelling skill, build the marts models (fct_inventory_health and fct_procurement_summary) in the dbt project. Then deploy the full project to Snowflake.
@@ -170,7 +174,7 @@ Using the data contract in data_contract.json, add dbt tests for all staging and
 Reference the context using `@`:
 
 ```
-@data_contract.json @dbt-projects-on-snowflake @naming-convention
+@data_contract.json /dbt-projects-on-snowflake /naming-convention
 ```
 
 #### 4.2 — Run Tests
@@ -194,7 +198,7 @@ Use custom skills to build a sandbox prototyping environment for natural languag
 - `sandbox-frostbyte` skill available in the workspace
 - Supplier contract document PDFs in the `supplier_contracts` directory under the `/answers` directory
 
-> **Tip:** Refresh your browser and start a new chat session before beginning Part 2.
+> **Hint:** Refresh your browser and start a new chat session before beginning Part 2. This refreshes the authentication token for your chat session.  
 
 ---
 
@@ -214,7 +218,7 @@ For this lab, please select **Retail / Store Operations**.
 
 The skill will confirm your selections and the names of the database objects — ensure both tables in the MART schema will be cloned.
 
-Proceed with the DDL creation.
+Proceed with the DDL creation when prompted.
 
 **Expected result:** Sandbox will be provisioned and you can see both tables in your sandbox database/schema.
 
@@ -224,13 +228,13 @@ Proceed with the DDL creation.
 
 #### Key Concept — Unstructured Data Extraction with Cortex
 
-Turn unstructured documents into actionable structured information.
+Turn unstructured documents into actionable structured information. AI_EXTRACT can extract text from documents and images and add this to a table. This lets you retrieve information from unstructured documents in a simple workflow.  
 
 Continue on with the skill workflow and for the option to select the Prototyping Track, select the option: **Document AI**
 
 It should find the PDFs automatically in the workspace. If there are any issues, you can tell it where to find the files.
 
-CoCo will create a named stage, upload the files, and then use `AI_EXTRACT` to extract key data fields and create a new table with this data.
+CoCo will create a named stage, upload the files, and then use `AI_EXTRACT` to extract key data fields and create a new table with this data. If it hasn't created a SQL file with the commands, you can ask it again to do this so you can see how AI_EXTRACT functions.
 
 **Expected result:** Check in Snowsight under the MARTS schema of your sandbox database for the newly created DIM_SUPPLIER... table.
 
@@ -244,10 +248,10 @@ A skill can provide a workflow and, based on user selections, can step through a
 
 Continue on with the skill workflow and select/type **option E: Analytics Prototype**.
 
-When prompted for the business questions you want to answer, select **Something else...** and type:
+When prompted for the business questions you want to answer, select **Other...** and type:
 
 ```
-Create a semantic view based on the three tables in the MARTS schema.
+Create a semantic view based on the tables in the MARTS schema.
 ```
 
 CoCo will continue on and generate the YAML and semantic view and test it. Once complete you can see the questions and answers. You can test the Cortex Analyst semantic model with an additional question such as:
@@ -268,7 +272,7 @@ Create a Cortex Agent based on this semantic view and add the agent to Snowflake
 
 **Expected result:** Successful creation of the agent.
 
-Go to [ai.snowflake.com](https://ai.snowflake.com) and validate the agent was successfully created and is available.
+Go to [ai.snowflake.com](https://ai.snowflake.com) and validate the agent was successfully created and is available. You should be able to ask the agent questions about the dataset.  
 
 ---
 
@@ -300,4 +304,4 @@ You can run this app inside your workspace. When you are happy it's working and 
 
 **Expected result:** Click on the link provided by CoCo and view the Streamlit app.
 
-**Optional:** Continue on and have CoCo make changes to the Streamlit app.
+**Optional:** Continue on and have CoCo make changes to the Streamlit app, such as adjusting charts and styles. 
